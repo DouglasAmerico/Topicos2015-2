@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 /**
- * Created by Douglas on 23/08/2015.
+ * Created by Douglas on 22/08/2015.
  */
 public class Elemento {
 

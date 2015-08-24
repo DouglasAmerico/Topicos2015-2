@@ -126,25 +126,50 @@ public class TelaJogo extends TelaBase {
     }
 
     private void atualizarMeteoros(float delta) {
-        int tipo = MathUtils.random(1,3);
-        if (tipo == 1 ) {
-            // cria meteoro 1
-            Image meteoro = new Image(texturaMeteoro1);
-            float x = MathUtils.random(0,camera.viewportWidth - meteoro.getImageWidth());
-            float y = MathUtils.random(camera.viewportHeight, camera.viewportWidth *2);
-            meteoro.setPosition(x,y);
-            meteoro1.add(meteoro);
-            palco.addActor(meteoro);
-        }
-        else {
-            // cria meteoro 2
+        int qtdaMeteoros = meteoro1.size + meteoro2.size; // retorna a quantidade de meteoros criados
+
+        if (qtdaMeteoros <8) {
+
+            int tipo = MathUtils.random(1, 3); // retorna 1 ou 2 aleatoriamente
+            if (tipo == 1) {
+                // cria meteoro 1
+                Image meteoro = new Image(texturaMeteoro1);
+                float x = MathUtils.random(0, camera.viewportWidth - meteoro.getImageWidth());
+                float y = MathUtils.random(camera.viewportHeight, camera.viewportWidth * 2);
+                meteoro.setPosition(x, y);
+                meteoro1.add(meteoro);
+                palco.addActor(meteoro);
+            } else {
+                // cria meteoro 2
+                Image meteoro = new Image(texturaMeteoro2);
+                float x = MathUtils.random(0, camera.viewportWidth - meteoro.getImageWidth());
+                float y = MathUtils.random(camera.viewportHeight, camera.viewportWidth * 2);
+                meteoro.setPosition(x, y);
+                meteoro2.add(meteoro);
+                palco.addActor(meteoro);
+            }
         }
 
-        float velocidade = 300;
+        float velocidade1 = 200; // pixels por segundos
         for (Image meteoro : meteoro1) {
             float x = meteoro.getX();
-            float y = meteoro.getY() - velocidade *delta;
-            meteoro.setPosition(x,y);
+            float y = meteoro.getY() - velocidade1 *delta;
+            meteoro.setPosition(x,y); // atualiza a posição do meteoro
+            if ((meteoro.getY() + meteoro.getImageHeight()) < 0) {
+                meteoro.remove(); // remove do palco
+                meteoro1.removeValue(meteoro, true); // remove da linha
+            }
+        }
+
+        float velocidade2 = 260; // pixels por segundos
+        for (Image meteoro : meteoro2) {
+            float x = meteoro.getX();
+            float y = meteoro.getY() - velocidade2 *delta;
+            meteoro.setPosition(x,y); // atualiza a posição do meteoro
+            if ((meteoro.getY() + meteoro.getImageHeight()) < 0) {
+                meteoro.remove(); // remove do palco
+                meteoro2.removeValue(meteoro, true); // remove da linha
+            }
         }
     }
 
