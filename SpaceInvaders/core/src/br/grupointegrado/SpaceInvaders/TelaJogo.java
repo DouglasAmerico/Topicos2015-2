@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -27,6 +28,7 @@ public class TelaJogo extends TelaBase {
     private OrthographicCamera camera;
     private SpriteBatch batch;
     private Stage palco;
+    private Stage palcoInformacoes;
     private BitmapFont fonte;
     private Label lbPontuacao;
     private Label lbgameOver;
@@ -43,6 +45,9 @@ public class TelaJogo extends TelaBase {
     private Texture texturaMeteoro2;
     private Array<Image> meteoro1= new Array<Image>();
     private Array<Image> meteoro2= new Array<Image>();
+
+    private Array<Texture> texturasExplosao = new Array<Texture>();
+    private Array<Explosao> explosoes = new Array<Explosao>();
 
     /**
      * Contrutor Padrão da Tela de Jogo
@@ -61,6 +66,7 @@ public class TelaJogo extends TelaBase {
         camera = new OrthographicCamera(Gdx.graphics.getWidth(),Gdx.graphics.getHeight());
         batch = new SpriteBatch();
         palco = new Stage(new FillViewport(camera.viewportWidth,camera.viewportHeight,camera));
+        palcoInformacoes = new Stage(new FillViewport(camera.viewportWidth,camera.viewportHeight,camera));
 
         initTexturas();
         initfonte();
@@ -72,6 +78,10 @@ public class TelaJogo extends TelaBase {
         texturaTiro = new Texture("sprites/shot.png");
         texturaMeteoro1 = new Texture("sprites/enemie-1.png");
         texturaMeteoro2 = new Texture("sprites/enemie-2.png");
+        for (int i = 1; i<= 17;i++) {
+            Texture text = new Texture("sprites/explosion-"+i+".png");
+            texturasExplosao.add(text);
+        }
     }
 
     /**
@@ -102,14 +112,25 @@ public class TelaJogo extends TelaBase {
 
         lbgameOver = new Label("Game Over!",lbStilo);
         lbgameOver.setVisible(false);
-        palco.addActor(lbgameOver);
+        palcoInformacoes.addActor(lbgameOver);
     }
 
     /**
      * instacia os objetos de fonte
      */
     private void initfonte(){
-        fonte = new BitmapFont();
+        FreeTypeFontGenerator gerador = new FreeTypeFontGenerator(Gdx.files.internal("fonts/roboto.ttf"));
+        FreeTypeFontGenerator.FreeTypeFontParameter param = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        param.color = Color.WHITE;
+        param.size = 24;
+        param.shadowOffsetX = 2;
+        param.shadowOffsetY = 2;
+        param.shadowColor = Color.BLACK;
+
+
+        //fonte = new BitmapFont();
+        fonte = gerador.generateFont(param);
+        gerador.dispose();
     }
     /**
      * Chamado a todo quadro de atuaçização do jogo, ou famoso fps;
@@ -119,25 +140,42 @@ public class TelaJogo extends TelaBase {
     public void render(float delta) {
         Gdx.gl.glClearColor(.15f, .15f, 25f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        lbPontuacao.setPosition(10, camera.viewportHeight - 20);
+        lbPontuacao.setPosition(10, camera.viewportHeight - lbPontuacao.getPrefHeight() - 20);
         lbPontuacao.setText(pontuacao + " Pontos");
 
-        lbgameOver.setPosition(camera.viewportWidth / 2 - (lbgameOver.getWidth() / 2), camera.viewportHeight / 2);
+        lbgameOver.setPosition(camera.viewportWidth / 2 - (lbgameOver.getPrefHeight() / 2), camera.viewportHeight / 2);
         lbgameOver.setVisible(gameOver == true);
+
+        atualizarExplosoes(delta);
 
         if (gameOver == false) {
             detectaColisoes(meteoro1, 5);
-            detectaColisoes(meteoro2,5);
+            detectaColisoes(meteoro2, 5);
             atualizarMeteoros(delta);
             capiturasTeclas();
             atualizaJogador(delta);
             atualizarTiros(delta);
-
         }
-// atuaiza a situação do palco
+
+        // atuaiza a situação do palco
         palco.act(delta);
-//desenha o palco na tela
+        //desenha o palco na tela
         palco.draw();
+
+        //desenhar o palco de informações
+        palcoInformacoes.act(delta);
+        palcoInformacoes.draw();
+    }
+
+    private void atualizarExplosoes(float delta) {
+        for (Explosao explosao : explosoes){
+            if (explosao.getEstagio() >= 16){ // verifica se a explosão chegou ao fim
+                explosoes.removeValue(explosao,true); //remove a explosão do array
+                explosao.getAtor().remove();// remove o ator do palco
+            } else { // ainda não chegou ao fim
+                explosao.atualizar(delta);
+            }
+        }
     }
 
     private Rectangle recJogador = new Rectangle();
@@ -157,9 +195,10 @@ public class TelaJogo extends TelaBase {
                     // aqui ocorre uma colisão do tiro com o meteoro 1
                     pontuacao += valePonto;
                     tiro.remove(); // remove do palco
-                    tiros.removeValue(tiro,true); // remove da lista
+                    tiros.removeValue(tiro, true); // remove da lista
                     meteoro.remove(); // remove do palco
-                    meteoros.removeValue(meteoro,true); // remove da lista
+                    meteoros.removeValue(meteoro, true); // remove da lista
+                    criarExplosao(meteoro.getX(),meteoro.getY());
                 }
 
             }
@@ -169,6 +208,20 @@ public class TelaJogo extends TelaBase {
                 gameOver = true;
             }
         }
+    }
+
+    /**
+     * cria a explosão na posição x e y
+     * @param x
+     * @param y
+     */
+    private void criarExplosao(float x, float y) {
+        Image ator = new Image(texturasExplosao.get(0));
+        ator.setPosition(x, y);
+        palco.addActor(ator);
+
+        Explosao explosao = new Explosao(ator,texturasExplosao);
+        explosoes.add(explosao);
     }
 
     private void atualizarMeteoros(float delta) {
@@ -334,6 +387,7 @@ public class TelaJogo extends TelaBase {
     public void dispose() {
         batch.dispose();
         palco.dispose();
+        palcoInformacoes.dispose();
         fonte.dispose();
         texturajogador.dispose();
         texturajogadordireita.dispose();
@@ -341,5 +395,8 @@ public class TelaJogo extends TelaBase {
         texturaTiro.dispose();
         texturaMeteoro1.dispose();
         texturaMeteoro2.dispose();
+        for (Texture text : texturasExplosao){
+            text.dispose();
+        }
     }
 }
