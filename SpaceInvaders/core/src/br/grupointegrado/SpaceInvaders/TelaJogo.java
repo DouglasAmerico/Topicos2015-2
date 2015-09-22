@@ -1,7 +1,9 @@
 package br.grupointegrado.SpaceInvaders;
 
+import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
@@ -14,12 +16,15 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.utils.SpriteDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FillViewport;
+
+import java.util.Vector;
 
 
 /**
@@ -285,6 +290,7 @@ public class TelaJogo extends TelaBase {
             if ((meteoro.getY() + meteoro.getImageHeight()) < 0) {
                 meteoro.remove(); // remove do palco
                 meteoro1.removeValue(meteoro, true); // remove da linha
+                pontuacao = pontuacao - 30; // decrementa a pontuação
             }
         }
 
@@ -296,6 +302,7 @@ public class TelaJogo extends TelaBase {
             if ((meteoro.getY() + meteoro.getImageHeight()) < 0) {
                 meteoro.remove(); // remove do palco
                 meteoro2.removeValue(meteoro, true); // remove da linha
+                pontuacao = pontuacao - 60; // decrementa a pontuação
             }
         }
     }
@@ -375,15 +382,64 @@ public class TelaJogo extends TelaBase {
         indoesquerda = false;
         atirando = false;
 
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.LEFT)){
+        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.LEFT) || clicouEsquerda()){
             indoesquerda = true;
-        }else if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.RIGHT)) {
-            indodireita = true;
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
-            atirando = true;
+        else {
+            if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.RIGHT) || clicouDireita()) {
+            indodireita = true;}
+
+            if (Gdx.input.isKeyPressed(Input.Keys.SPACE) || Gdx.app.getType() == Application.ApplicationType.Android) {
+            atirando = true;}
+
+            reiniciarJogo();
         }
     }
+
+    private boolean clicouDireita() {
+    if (Gdx.input.isTouched()) {
+        Vector3 posicao = new Vector3();
+        posicao.x = Gdx.input.getX();
+        posicao.y = Gdx.input.getY();
+        posicao = camera.unproject(posicao);
+        float meio = camera.viewportWidth/2;
+        if (posicao.x > meio) {
+            return true;
+        }
+    }
+        return false;
+    }
+
+    private boolean clicouEsquerda() {
+        if (Gdx.input.isTouched()) {
+            Vector3 posicao = new Vector3();
+            posicao.x = Gdx.input.getX();
+            posicao.y = Gdx.input.getY();
+            posicao = camera.unproject(posicao);
+            float meio = camera.viewportHeight/2;
+            if (posicao.x < meio) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * veriica se o usiaior pressionou Enter para reiniciar o jogo
+     */
+    private void reiniciarJogo() {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+            Preferences preferencia = Gdx.app.getPreferences("SpaceInvaders");
+            int pontuacaoMaxima = preferencia.getInteger("pontuacaoMaxima",0);
+            if (pontuacao > pontuacaoMaxima){
+                preferencia.putInteger("pontuacaoMaxima",pontuacao);
+                preferencia.flush();
+            }
+            //volta para a tela de menu
+            game.setScreen(new TelaMenu(game));
+        }
+    }
+
     /**
      * ele e chamado sempre que a uma alteração no tamanho da tela
      * @param width novo valor de largura da tela
