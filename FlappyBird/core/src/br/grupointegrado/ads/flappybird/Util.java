@@ -8,13 +8,13 @@ import com.badlogic.gdx.physics.box2d.Shape;
 import com.badlogic.gdx.physics.box2d.World;
 
 /**
- * Created by Vanessa on 05/10/2015.
+ * Created by Douglas on 05/10/2015.
  */
 public class Util {
 
     public static final float ESCALA = 2;
     public static final float PIXEL_METRO = 32;
-    public static final float ALTURA_CHAO = 80 / PIXEL_METRO; // Altura do ch�o em metros
+    public static final float ALTURA_CHAO = 80 / PIXEL_METRO; // Altura do chao em metros
 
     /**
      * Cria um corpo dentro do mundo
