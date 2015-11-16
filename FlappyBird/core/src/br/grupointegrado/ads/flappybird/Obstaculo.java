@@ -64,10 +64,10 @@ public class Obstaculo {
         if (ultimoObstaculo != null) {
             xInicial = ultimoObstaculo.getX();
         }
-        posX = xInicial + 4; // 4 � o espa�o entre os obstaculos
+        posX = xInicial + 4; // 4 e o espaço entre os obstaculos
 
-        // Parcela � o tamanho de tela dividido por 6, para encontrar a
-        // posi��o Y do obstaculo
+        // Parcela e o tamanho de tela dividido por 6, para encontrar a
+        // posicao Y do obstaculo
         float parcela = (altura - Util.ALTURA_CHAO) / 6;
 
         int multiplicador = MathUtils.random(1, 3);
