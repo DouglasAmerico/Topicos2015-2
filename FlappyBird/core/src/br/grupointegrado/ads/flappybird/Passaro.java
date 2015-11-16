@@ -9,7 +9,7 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 
 /**
- * Created by Vanessa on 05/10/2015.
+ * Created by Douglas Americo on 05/10/2015.
  */
 public class Passaro {
     private final World mundo;
@@ -55,7 +55,7 @@ public class Passaro {
     }
 
     /**
-     * Aplica uma for�a positiva no y para simular o pulo
+     * Aplica uma forca positiva no y para simular o pulo
      */
     public void pular(){
         corpo.setLinearVelocity(corpo.getLinearVelocity().x, 0);
