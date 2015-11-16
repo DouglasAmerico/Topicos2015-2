@@ -1,3 +1,4 @@
+package br.grupointegrado.ads.flappybird;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -28,6 +29,12 @@ import com.badlogic.gdx.scenes.scene2d.utils.SpriteDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FillViewport;
+
+import br.grupointegrado.ads.flappybird.MainGame;
+import br.grupointegrado.ads.flappybird.Obstaculo;
+import br.grupointegrado.ads.flappybird.Passaro;
+import br.grupointegrado.ads.flappybird.TelaBase;
+import br.grupointegrado.ads.flappybird.Util;
 
 public class TelaJogo extends TelaBase{
 
