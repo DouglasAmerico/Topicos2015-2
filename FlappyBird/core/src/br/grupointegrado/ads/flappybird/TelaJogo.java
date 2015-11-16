@@ -174,7 +174,8 @@ public class TelaJogo extends TelaBase{
 
     private void atualizaInformacoes() {
         lbPontuacao.setText(pontuacao + "");
-        lbPontuacao.setPosition(cameraInfo.viewportWidth / 2 - lbPontuacao.getPrefWidth() / 2, camera.viewportHeight / 2 - lbPontuacao.getPrefHeight() / 2);
+        lbPontuacao.setPosition(cameraInfo.viewportWidth / 2 - lbPontuacao.getPrefWidth() / 2,
+                camera.viewportHeight / 2 - lbPontuacao.getPrefHeight() / 2);
     }
 
     private void atualizarObstaculo() {
@@ -189,7 +190,8 @@ public class TelaJogo extends TelaBase{
 
         // Verifica se os obstaculos sairam da tela para remoce-lo
         for (Obstaculo o : obstaculos){
-            float inicioCamera = passaro.getCorpo().getPosition().x - (camera.viewportWidth / 2 / Util.PIXEL_METRO) - o.getLargura();
+            float inicioCamera = passaro.getCorpo().getPosition().x - (camera.viewportWidth / 2 / Util.PIXEL_METRO) -
+                    o.getLargura();
             if (inicioCamera > o.getPosX()){
                 o.remove();
                 obstaculos.removeValue(o, true);
