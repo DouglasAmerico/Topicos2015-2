@@ -29,8 +29,6 @@ public class Passaro {
         float x = (camera.viewportWidth / 2) / Util.PIXEL_METRO;
         float y = (camera.viewportHeight / 2) / Util.PIXEL_METRO;
 
-        corpo = Util.criarCorpo(mundo, BodyDef.BodyType.DynamicBody, x, y);
-
         FixtureDef definicao = new FixtureDef();
         definicao.density = 1;
         definicao.friction = 0.4f;
@@ -47,8 +45,21 @@ public class Passaro {
      * @param delta
      */
     public void atualizar(float delta) {
-        atualizarVelocidade();
+        if (movimentar){
+            atualizarVelocidade();
+            atualizarRotacao();
+        }
     }
+
+
+    private void atualizarRotacao(){
+
+        float velocidadeY = corpo.getLinearVelocity().y;
+        float rotacao = 0;
+
+        corpo.setTransform(corpo.getPosition(),(float) Math.toRadians(velocidadeY * 10));
+    }
+
 
     private void atualizarVelocidade() {
         corpo.setLinearVelocity(2f, corpo.getLinearVelocity().y);
@@ -65,4 +76,6 @@ public class Passaro {
     public Body getCorpo() {
         return corpo;
     }
+
+
 }
