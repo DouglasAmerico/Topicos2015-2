@@ -3,6 +3,9 @@ package br.grupointegrado.ads.flappybird;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
@@ -16,12 +19,15 @@ public class Passaro {
     private final OrthographicCamera camera;
     private final Texture[] texturas;
     private Body corpo;
+    private Sprite sprite;
 
     public Passaro(World mundo, OrthographicCamera camera, Texture[] texturas){
 
         this.mundo = mundo;
         this.camera = camera;
         this.texturas = texturas;
+        this.sprite = new Sprite(texturas[0]);
+
         initCorpo();
     }
 
@@ -43,8 +49,9 @@ public class Passaro {
     /**
      * Atualiza o comportamento do passaro
      * @param delta
+     * @param b
      */
-    public void atualizar(float delta) {
+    public void atualizar(float delta, boolean b) {
         boolean movimentar = true;
         if (movimentar){
             atualizarVelocidade();
@@ -78,5 +85,14 @@ public class Passaro {
         return corpo;
     }
 
+    public void renderizar(SpriteBatch pincel) {
+        float x = 0;
+        float y = 0;
 
+        Vector2 posicao = corpo.getPosition();
+        sprite.setTexture(texturas[0]);
+        sprite.setPosition(posicao.x * Util.PIXEL_METRO, posicao.y * Util.PIXEL_METRO);
+        sprite.setOrigin(0,0);
+        sprite.setRotation((float) Math.toDegrees(corpo.getAngle()));
+    }
 }
