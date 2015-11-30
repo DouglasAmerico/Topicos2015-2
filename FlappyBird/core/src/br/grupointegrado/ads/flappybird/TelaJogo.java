@@ -1,6 +1,9 @@
 package br.grupointegrado.ads.flappybird;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -39,6 +42,8 @@ import br.grupointegrado.ads.flappybird.Util;
 
 public class TelaJogo extends TelaBase{
 
+    private static final String PREF_FLAPPY_BIRD = "PREF_FLAPPY_BIRD";
+    private static final java.lang.String PREF_MAIOR_PONTUACAO = "PREF_MAIOR_PONTUACAO";
     private OrthographicCamera camera; // Camera do jogo
     private World mundo; // Representa o mundo do Box2D
     private Passaro passaro;
@@ -67,14 +72,22 @@ public class TelaJogo extends TelaBase{
     private Sprite spriteChao1;
     private Sprite spriteChao2;
 
+    private Label lbMaiorPontuacao;
+    private BitmapFont fonte;
+
     private boolean jogoIniciado = false;
 
     public TelaJogo(MainGame game) {
         super(game);
     }
 
+    public Music musicaFundo;
+    private Sound somAsas;
+    private Sound somGameOver;
+
     @Override
     public void show() {
+        initAudio();
         camera = new OrthographicCamera(Gdx.graphics.getWidth() / Util.ESCALA, Gdx.graphics.getHeight() / Util.ESCALA);
         cameraInfo = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         debug = new Box2DDebugRenderer();
@@ -111,6 +124,14 @@ public class TelaJogo extends TelaBase{
         initInformacoes();
     }
 
+    private void initAudio() {
+        musicaFundo = Gdx.audio.newMusic(Gdx.files.internal("songs/music.mp3"));
+        musicaFundo.setLooping(true);
+
+        somAsas = Gdx.audio.newSound(Gdx.files.internal("songs/wing.ogg"));
+        somAsas = Gdx.audio.newSound(Gdx.files.internal("songs/game-over.mp3"));
+    }
+
     private void initTexturas() {
         texturasPassaro = new Texture[3];
         texturasPassaro[0] = new Texture("sprites/bird-1.png");
@@ -139,6 +160,21 @@ public class TelaJogo extends TelaBase{
         if ("PASSARO".equals(fixtureA.getUserData()) || ("PASSARO".equals(fixtureB.getUserData()))){
             // game over
 
+        if (!gameOver) {
+            somGameOver.play(1); // 1 pois fica com 100% do volume
+        }
+
+        gameOver = true;
+            salvarPontuacao();
+        }
+    }
+
+    private void salvarPontuacao() {
+        Preferences pref = Gdx.app.getPreferences(PREF_FLAPPY_BIRD);
+        int maiorPontuação = pref.getInteger(PREF_MAIOR_PONTUACAO, 0);
+        if (pontuacao > maiorPontuação) {
+            pref.putInteger(PREF_MAIOR_PONTUACAO, pontuacao);
+            pref.flush();
         }
     }
 
@@ -152,6 +188,12 @@ public class TelaJogo extends TelaBase{
 
         FreeTypeFontGenerator gerador = new FreeTypeFontGenerator(Gdx.files.internal("fonts/roboto.ttf"));
         fontepontuacao = gerador.generateFont(fonteparam);
+
+        fonteparam.size = 24;
+        fonteparam.shadowOffsetX = 2;
+        fonteparam.shadowOffsetX = 2;
+        fonte = gerador.generateFont(fonteparam);
+
         gerador.dispose();
     }
 
@@ -170,7 +212,7 @@ public class TelaJogo extends TelaBase{
         estiloBotao.up = new SpriteDrawable(new Sprite(texturaPlay));
 
         btnPlay = new ImageButton(estiloBotao);
-        btnPlay.addListener(new ClickListener(){
+        btnPlay.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 jogoIniciado = true;
@@ -182,16 +224,26 @@ public class TelaJogo extends TelaBase{
         estiloBotao.up = new SpriteDrawable(new Sprite(texturaGameOver));
 
         btnGameOver = new ImageButton(estiloBotao);
-        btnGameOver.addListener(new ClickListener(){
+        btnGameOver.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 reiniciarJogo();
             }
         });
         palcoInformacoes.addActor(btnGameOver);
+
+        Preferences pref = Gdx.app.getPreferences(PREF_FLAPPY_BIRD);
+        int maiorPontuacao = pref.getInteger(PREF_MAIOR_PONTUACAO,0);
+
+        estilo = new Label.LabelStyle();
+        estilo.font = fonte;
+
+        lbMaiorPontuacao = new Label("Maior "+maiorPontuacao,estilo);
+        palcoInformacoes.addActor(lbMaiorPontuacao);
+
     }
 
-    private void reiniciarJogo(){
+    private void reiniciarJogo() {
         game.setScreen(new TelaJogo(game));
     }
 
@@ -262,6 +314,14 @@ public class TelaJogo extends TelaBase{
      * @param delta
      */
     private void atualizar(float delta) {
+
+        if (gameOver && musicaFundo.isPlaying()) {
+            musicaFundo.stop();
+        } else if (!gameOver && musicaFundo.isPlaying()) {
+            musicaFundo.setVolume(0.1f); // 10% do volume da musica
+            musicaFundo.play();
+        }
+
         palcoInformacoes.act(delta);
 
         passaro.getCorpo().setFixedRotation(!gameOver);
@@ -278,11 +338,21 @@ public class TelaJogo extends TelaBase{
         }
 
         if (pulando && !gameOver){
+            somAsas.play(1);
             passaro.pular();
         }
     }
 
     private void atualizaInformacoes() {
+        lbMaiorPontuacao.setPosition(10, cameraInfo.viewportHeight - lbMaiorPontuacao.getPrefHeight());
+        lbMaiorPontuacao.setVisible(!jogoIniciado);
+
+        lbPontuacao.setText(pontuacao + "");
+        lbPontuacao.setPosition(
+                cameraInfo.viewportWidth / 2 - lbPontuacao.getPrefWidth() / 2,
+                cameraInfo.viewportHeight - lbPontuacao.getPrefHeight());
+        lbPontuacao.setVisible(!jogoIniciado);
+
         lbPontuacao.setText(pontuacao + "");
         lbPontuacao.setPosition(cameraInfo.viewportWidth / 2 - lbPontuacao.getPrefWidth() / 2, camera.viewportHeight / 2 - lbPontuacao.getPrefHeight() / 2);
 
@@ -392,5 +462,10 @@ public class TelaJogo extends TelaBase{
         texturaPlay.dispose();
         texturaGameOver.dispose();
         pincel.dispose();
+
+        fonte.dispose();
+        musicaFundo.dispose();
+        somAsas.dispose();
+        somGameOver.dispose();
     }
 }
